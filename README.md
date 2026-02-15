@@ -23,3 +23,9 @@ GIGACHAT_AUTH_URL=https://ngw.devices.sberbank.ru:9443/api/v2/oauth
 source ./init.sh
 ```
 
+### Описание GigaChat
+
+- [Получение токена доступа для авторизации запросов к API](https://developers.sber.ru/docs/ru/gigachat/api/reference/rest/post-token)
+- [Запрос на генерацию ответа](https://developers.sber.ru/docs/ru/gigachat/api/reference/rest/post-chat)
+- [Описание модели GigaChat 2 Lite](https://developers.sber.ru/docs/ru/gigachat/models/gigachat-2-lite)
+
