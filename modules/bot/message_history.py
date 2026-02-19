@@ -1,45 +1,49 @@
+from modules.bot.config import Chat, MESSAGE_HISTORY_DIR
 import json
 from pathlib import Path
 from utils.file_operations import FileFormat, utils_save_file
-from modules.bot.config import _get_username, _get_message_history, _get_message_history_ids
+
 
 # Функция для сохранения истории сообщений
-def _save_message_history() -> bool:
-    username = _get_username()
-    message_history = _get_message_history()
-    message_history_ids = _get_message_history_ids()
+def save_message_history(chat: Chat = None) -> bool:
+    if chat is None:
+        print("\033[1m\033[91m[ERROR] >>>>\033[0m chat is None")
+        return False
 
-    try:
-        if message_history is None:
-            print("[ERROR] Не задана история сообщений для сохранения")
-            return False
-        elif message_history_ids is None:
-            print("[ERROR] Не задан список идентификаторов для сопоставления истории сообщений с сохранением")
-            return False
-        elif len(message_history) == 0:
-            print("[WARN] История сообщений пуста. Сохранение не будет выполнено")
-            return False
-        elif username is None:
-            print("[ERROR] Пользователь для сохранения истории сообщений не известен")
-            return False
-    except Exception as ex:
-        print("[ERROR] Ошибка при сохранении истории сообщений", ex)
+    username = chat.username
+    message_history = chat.message_history
+    message_history_ids = chat.message_history_ids
+
+    if chat.message_count == 0:
+        print("\033[1m\033[93m[WARN] >>>>\033[0m История сообщений пуста. Сохранение не будет выполнено")
+        return False
+
+    if username is None:
+        print("\033[1m\033[91m[ERROR] >>>>\033[0m Пользователь для сохранения истории сообщений не известен")
+        return False
+
+    if message_history is None:
+        print("\033[1m\033[91m[ERROR] >>>>\033[0m Не задана история сообщений для сохранения")
+        return False
+
+    if message_history_ids is None:
+        print("\033[1m\033[91m[ERROR] >>>>\033[0m Не задан список идентификаторов для сопоставления истории сообщений с сохранением")
+        return False
 
     message_history_object = {}
+    filepath = Path(f"{MESSAGE_HISTORY_DIR}{username}.json")
 
-    path = Path(f"data/history/{username}.json")
-
-    if (path.exists()):
+    if (filepath.exists()):
         # Если уже есть сохраненные сообщения, нужно вычитать их в память и выполнить дозапись
-        with path.open("r", encoding="utf-8") as file:
+        with filepath.open("r", encoding="utf-8") as file:
             message_history_object = json.load(file)
 
             if "message_history_ids" not in message_history_object:
-                print("[ERROR] В файле с сохраненной историей сообщений некорректная структура. Отсутствует поле 'message_history_ids'")
+                print("\033[1m\033[91m[ERROR] >>>>\033[0m В файле с сохраненной историей сообщений некорректная структура. Отсутствует поле 'message_history_ids'")
                 return False
 
             if "message_history" not in message_history_object:
-                print("[ERROR] В файле с сохраненной историей сообщений некорректная структура. Отсутствует поле 'message_history'")
+                print("\033[1m\033[91m[ERROR] >>>>\033[0m В файле с сохраненной историей сообщений некорректная структура. Отсутствует поле 'message_history'")
                 return False
 
             for index, id in enumerate(message_history_ids):
@@ -56,6 +60,6 @@ def _save_message_history() -> bool:
         message_history_object["message_history_ids"] = message_history_ids
         message_history_object["message_history"] = message_history
 
-    utils_save_file(path, FileFormat.JSON, message_history_object)
+    utils_save_file(filepath, FileFormat.JSON, message_history_object)
 
     return True

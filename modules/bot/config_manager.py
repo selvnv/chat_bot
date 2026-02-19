@@ -2,50 +2,62 @@ import json
 from requests.exceptions import JSONDecodeError
 from pathlib import Path
 
-from modules.bot.config import _set_username, _set_context, _get_username, _get_context
+from modules.bot.config import USER_SETTINGS_PATH
 from utils.file_operations import utils_save_file, FileFormat
+from modules.bot.config import Chat
 
-def _load_user_config(config_path="conf/user_settings.json"):
-    path = Path(config_path)
+def load_user_config(chat: Chat = None):
+    if chat is None:
+        raise TypeError("chat is None")
 
-    if (path.exists()):
+    print("\033[1m\033[94m[INFO] load_user_config >>>>\033[0m Загрузка пользовательской конфигурации")
+
+    filepath = Path(USER_SETTINGS_PATH)
+
+    if (filepath.exists()):
         try:
-            with open(path, "r", encoding="utf-8") as settings_file:
+            with open(filepath, "r", encoding="utf-8") as settings_file:
                 settings = json.load(settings_file)
 
                 username = settings.get("username")
 
                 if username is None:
-                    print(f"[ERROR] Не удается найти имя пользователя в файле конфигурации {config_path} (username)")
+                    print(f"\033[1m\033[91m[ERROR] load_user_config >>>>\033[0m Не удается найти имя пользователя в файле конфигурации {USER_SETTINGS_PATH} (username)")
                     return False
 
-                _set_username(username)
+                chat.username = username
 
                 context = settings.get("context")
                 if context is None:
-                    print(f"[WARN] Не удается найти контекст в файле конфигурации {config_path} (context)")
+                    print(f"\033[1m\033[93m[WARN] load_user_config >>>>\033[0m Не удается найти контекст в файле конфигурации {USER_SETTINGS_PATH} (context)")
 
-                _set_context(context)
+                chat.context.context = context
 
                 return True
         except JSONDecodeError as ex:
-            print("[ERROR] Ошибка при парсинге файла конфигурации в JSON", ex)
+            print("\033[1m\033[91m[ERROR] load_user_config >>>>\033[0m Ошибка при парсинге файла конфигурации в JSON", ex)
         except Exception as ex:
-            print("[ERROR] Непредвиденная ошибка при чтении файла конфигурации", ex)
+            print("\033[1m\033[91m[ERROR] load_user_config >>>>\033[0m Непредвиденная ошибка при чтении файла конфигурации", ex)
     else:
-        print(f"[ERROR] Не удается найти файл конфигурации пользователя по пути {path}")
+        print(f"\033[1m\033[91m[ERROR] load_user_config >>>>\033[0m Не удается найти файл конфигурации пользователя по пути {filepath}")
         return False
 
 
-def _save_user_config(config_path="conf/user_settings.json"):
-    path = Path(config_path)
+def save_user_config(chat: Chat = None):
+    if chat is None:
+        print(f"\033[1m\033[91m[ERROR] save_user_config >>>>\033[0m chat is None")
+        return
+
+    print("\033[1m\033[94m[INFO] save_user_config >>>>\033[0m Сохранение файла пользовательской конфигурации")
+
+    path = Path(USER_SETTINGS_PATH)
 
     try:
         config_object = {
-            "username": _get_username(),
-            "context": _get_context()
+            "username": chat.username,
+            "context": str(chat.context)
         }
 
         utils_save_file(path, FileFormat.JSON, config_object)
     except Exception as ex:
-        print("[ERROR] Ошибка при сохранении файла пользовательской конфигурации", ex)
+        print("\033[1m\033[91m[ERROR] save_user_config >>>>\033[0m Ошибка при сохранении файла пользовательской конфигурации", ex)

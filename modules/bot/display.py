@@ -1,4 +1,3 @@
-import copy
 import json
 
 from rich.console import Console
@@ -8,11 +7,11 @@ from rich.theme import Theme
 from pathlib import Path
 
 from modules.bot.config import DISPLAY_MESSAGE_HISTORY_COUNT
-from modules.bot.config import _username, _message_history, _message_history_ids
+from modules.bot.config import Chat
 
 def _print_markdown_message(message: str = ""):
     if len(message) == 0:
-        print("[WARN] Нет данных для отображения")
+        print("\033[1m\033[93m[WARN] _print_markdown_message >>>>\033[0m Нет данных для отображения")
 
     console = Console(theme=Theme({
         "markdown.h1": "bold bright_magenta",
@@ -36,7 +35,7 @@ def _print_markdown_message(message: str = ""):
     console.print(markdown_text)
 
 
-def _print_message_history(message_history: list = None, show_last: int = 10):
+def _print_message_history(username: str = None, message_history: list = None, show_last: int = 10):
     """Show 'show_last' messages of message history
 
     Args:
@@ -44,41 +43,41 @@ def _print_message_history(message_history: list = None, show_last: int = 10):
         show_last (int, optional): sets how many messages to display. Defaults to 10.
     """
     if message_history is None or len(message_history) == 0:
-        print("[WARN] История сообщений пуста")
+        print("\033[1m\033[93m[WARN] _print_message_history >>>>\033[0m История сообщений пуста")
 
     for message_item in message_history[-show_last:]:
         if message_item.get("role") == "user":
-            print(f"\033[1m\033[34m======{_username if _username is not None else "Пользователь"}======\033[0m")
+            print(f"\033[1m\033[34m{username if username is not None else "USER"}:\033[0m")
 
         if message_item.get("role") == "assistant":
-            print("\033[1m\033[92m======Model======\033[0m")
+            print("\033[1m\033[92mMODEL:\033[0m")
 
         if "content" in message_item:
             _print_markdown_message(message_item.get("content"))
 
-def show_last_message():
-    if len(_message_history) == 0:
-        print("\nНет сообщений для отображения")
-    else:
+
+def print_message(message: str = None):
+    if message is not None:
         print("\n\033[1m\033[96m============================================================\033[0m\n")
-        _print_markdown_message(_message_history[-1]["content"])
+        _print_markdown_message(message)
         print("\n\033[1m\033[96m============================================================\033[0m\n")
 
-def show_message_history():
+
+def show_message_history(chat: Chat = None):
+    if chat is None:
+        print("chat is none")
+        return
+
     # Создание дубликата истории сообщений, т.к. возможна мутация
-    messages_to_display = copy.deepcopy(_message_history)
-    messages_to_display_count = len(messages_to_display)
+    messages_to_display = chat.message_history
+    message_history_ids = chat.message_history_ids
 
     # Если в памяти мало сообщений для отображения
-    if messages_to_display_count < DISPLAY_MESSAGE_HISTORY_COUNT:
-        path_to_message_history_file = Path(f"data/history/{_username}.json")
+    if chat.message_count < DISPLAY_MESSAGE_HISTORY_COUNT:
+        path_to_message_history_file = Path(f"data/history/{chat.username}.json")
 
         is_history_file_exists = path_to_message_history_file.exists()
-        # История пуста, файл с историей отсутствует
-        if messages_to_display_count == 0:
-            if not is_history_file_exists:
-                print("[WARN] История сообщений пуста")
-                return
+
 
         if is_history_file_exists:
             # Догрузить сообщения из файла с сохранениями
@@ -86,19 +85,18 @@ def show_message_history():
                 message_history_object = json.load(file)
 
                 if "message_history_ids" not in message_history_object:
-                    print("[ERROR] В файле с сохраненной историей сообщений некорректная структура. Отсутствует поле 'message_history_ids'")
+                    print("\033[1m\033[91m[ERROR] show_message_history >>>>\033[0m В файле с сохраненной историей сообщений некорректная структура. Отсутствует поле 'message_history_ids'")
                     return
 
                 if "message_history" not in message_history_object:
-                    print("[ERROR] В файле с сохраненной историей сообщений некорректная структура. Отсутствует поле 'message_history'")
+                    print("\033[1m\033[91m[ERROR] show_message_history >>>>\033[0m В файле с сохраненной историей сообщений некорректная структура. Отсутствует поле 'message_history'")
                     return
 
                 file_message_histody_len = len(message_history_object["message_history"])
                 # Обход списка истории сообщений в обратном порядке
                 for shift, message_id in enumerate(reversed(message_history_object["message_history_ids"])):
-                    print(shift, message_id)
                     # Если message_id сообщения уже есть в памяти, загрузка такого сообщения не требуется
-                    if message_id in _message_history_ids:
+                    if message_id in message_history_ids:
                         continue
 
                     # Вставка сообщений в начало истории сообщений в памяти (сообщения в файле старее, чем сообщения в памяти)
@@ -107,7 +105,9 @@ def show_message_history():
                     # При доборе сообщений до нужного количества, завершить обход
                     if len(messages_to_display) >= DISPLAY_MESSAGE_HISTORY_COUNT:
                         break
-        elif messages_to_display_count == 0:
-            print("[WARN] История сообщений пуста")
+        elif chat.message_count == 0:
+            # История пуста, файл с историей отсутствует
+            print("\033[1m\033[93m[WARN] show_message_history >>>>\033[0m История сообщений пуста")
+            return
 
-    _print_message_history(messages_to_display, DISPLAY_MESSAGE_HISTORY_COUNT)
+    _print_message_history(chat.username, messages_to_display, DISPLAY_MESSAGE_HISTORY_COUNT)

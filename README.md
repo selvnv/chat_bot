@@ -13,9 +13,11 @@ curl -k "https://gu-st.ru/content/lending/russian_trusted_root_ca_pem.crt" -w "\
 
 ```bash
 # Содержимое файла .env
-GIGACHAT_AUTHORIZE_KEY=<YOUR_AUTHORIZATION_KEY>
 GIGACHAT_SCOPE=GIGACHAT_API_PERS
+GIGACHAT_AUTHORIZE_KEY=<YOUR_AUTHORIZATION_KEY>
 GIGACHAT_AUTH_URL=https://ngw.devices.sberbank.ru:9443/api/v2/oauth
+GIGACHAT_REQUEST_URL=https://gigachat.devices.sberbank.ru/api/v1/chat/completions
+GIGACHAT_MODEL=GigaChat-2
 ```
 
 Запуск скрипта для установки переменных окружения
@@ -28,11 +30,11 @@ source ./init.sh
 - [x] Вывод истории сообщений в консоль
 - [x] Сохранение истории сообщений при превышении лимита сообщений (например, 10)
 - [x] Генерация контекста каждые N сообщений (например, 2)
-- [ ] Интерактивный режим для работы с пользователем
+- [x] Интерактивный режим для работы с пользователем
   - [x] Ввод имени пользователя
   - [x] Запрос и вывод ответа в CLI
-- [ ] Вывод истории сообщений в консоль
-- [ ] Классовая реализация бота (хранение и изменение состояния)
+- [x] Вывод истории сообщений в консоль
+- [x] Классовая реализация бота (хранение и изменение состояния)
 
 ### Описание GigaChat
 

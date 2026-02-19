@@ -8,13 +8,12 @@ class FileFormat(Enum):
 
 # Функция для сохранения файла
 def utils_save_file(path: Path, format: str, data) -> bool:
-    print(path)
     if not path.exists():
-        print("[WARN] Путь к файлу не существует. Попытка создать файл")
+        print("\033[1m\033[93m[WARN] utils_save_file >>>>\033[0m Путь к файлу не существует. Попытка создать файл")
         try:
             path.touch()
         except Exception as ex:
-            print("[ERROR] Ошибка при создании файла", ex)
+            print("\033[1m\033[91m[ERROR] utils_save_file >>>>\033[0m Ошибка при создании файла", ex)
             return False
 
 
@@ -23,16 +22,16 @@ def utils_save_file(path: Path, format: str, data) -> bool:
             with path.open("w", encoding="utf-8") as file:
                 json.dump(data, file, indent=4, ensure_ascii=False)
         except Exception as ex:
-            print("[ERROR] Ошибка при сохранении JSON файла")
+            print("\033[1m\033[91m[ERROR] utils_save_file >>>>\033[0m Ошибка при сохранении JSON файла")
             return False
     elif format == FileFormat.TEXT:
         try:
             with path.open("w", encoding="utf-8") as file:
                 file.write(str(data))
         except Exception as ex:
-            print("[ERROR] Ошибка при сохранении текстового файла")
+            print("\033[1m\033[91m[ERROR] utils_save_file >>>>\033[0m Ошибка при сохранении текстового файла")
             return False
     else:
-        print("[ERROR] Неизвестный формат файла. Сохранение не будет выполнено")
+        print("\033[1m\033[91m[ERROR] utils_save_file >>>>\033[0m Неизвестный формат файла. Сохранение не будет выполнено")
 
     return True
